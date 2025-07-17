@@ -1,0 +1,55 @@
+import yfinance as yf
+
+class StockAnalyzer:
+    def __init__(self, ticker):
+        self.ticker = ticker
+        self.stock = yf.Ticker(ticker)
+
+    def get_all_info(self):
+        """
+        Retrieves all available information for the stock for debugging purposes.
+        """
+        info = self.stock.info
+        print("Available information from yfinance:")
+        for key, value in info.items():
+            print(f"- {key}: {value}")
+
+    def get_financial_metrics(self):
+        """
+        Retrieves key financial metrics for the stock.
+        """
+        financials = self.stock.financials
+        if financials is not None and not financials.empty:
+            return financials
+        return "Financial data not available."
+
+from technical_indicators import calculate_moving_average, calculate_rsi, calculate_macd
+
+    def get_technical_indicators(self):
+        """
+        Calculates key technical indicators for the stock.
+        """
+        hist = self.stock.history(period="1y")
+        if not hist.empty:
+            ma50 = calculate_moving_average(hist, 50).iloc[-1]
+            ma200 = calculate_moving_average(hist, 200).iloc[-1]
+            rsi = calculate_rsi(hist).iloc[-1]
+            macd, signal_line, _ = calculate_macd(hist)
+
+            return {
+                "50-Day MA": f"{ma50:.2f}",
+                "200-Day MA": f"{ma200:.2f}",
+                "RSI (14)": f"{rsi:.2f}",
+                "MACD": f"{macd.iloc[-1]:.2f}",
+                "Signal Line": f"{signal_line.iloc[-1]:.2f}"
+            }
+        return "Technical data not available."
+
+    def get_market_sentiment(self):
+        """
+        Retrieves news and sentiment analysis for the stock.
+        """
+        news = self.stock.news
+        if news:
+            return news
+        return "Market sentiment data not available."
