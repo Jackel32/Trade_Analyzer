@@ -23,7 +23,14 @@ class StockAnalyzer:
             return financials
         return "Financial data not available."
 
-from technical_indicators import calculate_moving_average, calculate_rsi, calculate_macd
+from technical_indicators import (
+    calculate_moving_average,
+    calculate_rsi,
+    calculate_macd,
+    calculate_bollinger_bands,
+    calculate_obv,
+    calculate_stochastic_oscillator,
+)
 
     def get_technical_indicators(self):
         """
@@ -35,13 +42,20 @@ from technical_indicators import calculate_moving_average, calculate_rsi, calcul
             ma200 = calculate_moving_average(hist, 200).iloc[-1]
             rsi = calculate_rsi(hist).iloc[-1]
             macd, signal_line, _ = calculate_macd(hist)
+            upper_band, _, lower_band = calculate_bollinger_bands(hist)
+            obv = calculate_obv(hist).iloc[-1]
+            stochastic = calculate_stochastic_oscillator(hist).iloc[-1]
 
             return {
                 "50-Day MA": f"{ma50:.2f}",
                 "200-Day MA": f"{ma200:.2f}",
                 "RSI (14)": f"{rsi:.2f}",
                 "MACD": f"{macd.iloc[-1]:.2f}",
-                "Signal Line": f"{signal_line.iloc[-1]:.2f}"
+                "Signal Line": f"{signal_line.iloc[-1]:.2f}",
+                "Bollinger Upper": f"{upper_band.iloc[-1]:.2f}",
+                "Bollinger Lower": f"{lower_band.iloc[-1]:.2f}",
+                "OBV": f"{obv:,.0f}",
+                "Stochastic Oscillator": f"{stochastic:.2f}",
             }
         return "Technical data not available."
 
