@@ -53,3 +53,33 @@ from technical_indicators import calculate_moving_average, calculate_rsi, calcul
         if news:
             return news
         return "Market sentiment data not available."
+
+    def get_confidence_score(self):
+        """
+        Calculates a confidence score for the stock based on a combination of
+        technical and fundamental factors.
+        """
+        score = 0
+
+        # Technical factors
+        hist = self.stock.history(period="1y")
+        if not hist.empty:
+            ma50 = calculate_moving_average(hist, 50).iloc[-1]
+            ma200 = calculate_moving_average(hist, 200).iloc[-1]
+            rsi = calculate_rsi(hist).iloc[-1]
+
+            if ma50 > ma200:
+                score += 1
+            if rsi < 70 and rsi > 30:
+                score += 1
+
+        # Fundamental factors
+        info = self.stock.info
+        if info.get("trailingPE", float('inf')) < 25:
+            score += 1
+        if info.get("forwardPE", float('inf')) < info.get("trailingPE", float('inf')):
+            score += 1
+        if info.get("dividendYield", 0) > 0:
+            score += 1
+
+        return f"{(score / 5) * 100:.2f}%"
