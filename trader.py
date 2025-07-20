@@ -89,6 +89,7 @@ def create_trading_prompt(context: str) -> str:
 
     Output Format
     Provide the output as a clean, text-wrapped table with these exact columns. Add the 'Profitability Chance' column before the 'Thesis'.
+    For the "Stop Loss" and "Profit Target" columns, you must include the percentage change from the entry price. For example: "$250.00 (-10%)".
     Ticker | Action | Entry Range | Stop Loss | Profit Target | Profitability Chance | Thesis
     
     Do not include any other text, explanations, or formatting. If a stock fails the hard filters or has unavailable data, indicate this in the Thesis.
@@ -141,13 +142,9 @@ if __name__ == "__main__":
         # If ticker and price are provided, calculate sell prices
         analyzer = StockAnalyzer(args.ticker)
         sell_prices = analyzer.get_sell_prices(args.price)
-
-        stop_loss_pct = (float(sell_prices['stop_loss']) / args.price - 1) * 100
-        take_profit_pct = (float(sell_prices['take_profit']) / args.price - 1) * 100
-
         print(f"Sell prices for {args.ticker}:")
-        print(f"  - Stop Loss: ${sell_prices['stop_loss']} ({stop_loss_pct:.0f}%)")
-        print(f"  - Take Profit: ${sell_prices['take_profit']} ({take_profit_pct:.0f}%)")
+        print(f"  - Stop Loss: {sell_prices['stop_loss']}")
+        print(f"  - Take Profit: {sell_prices['take_profit']}")
     else:
         # Original functionality
         # 1. Get watchlist from Gemini
