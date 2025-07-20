@@ -141,9 +141,13 @@ if __name__ == "__main__":
         # If ticker and price are provided, calculate sell prices
         analyzer = StockAnalyzer(args.ticker)
         sell_prices = analyzer.get_sell_prices(args.price)
+
+        stop_loss_pct = (float(sell_prices['stop_loss']) / args.price - 1) * 100
+        take_profit_pct = (float(sell_prices['take_profit']) / args.price - 1) * 100
+
         print(f"Sell prices for {args.ticker}:")
-        print(f"  - Stop Loss: {sell_prices['stop_loss']}")
-        print(f"  - Take Profit: {sell_prices['take_profit']}")
+        print(f"  - Stop Loss: ${sell_prices['stop_loss']} ({stop_loss_pct:.0f}%)")
+        print(f"  - Take Profit: ${sell_prices['take_profit']} ({take_profit_pct:.0f}%)")
     else:
         # Original functionality
         # 1. Get watchlist from Gemini
