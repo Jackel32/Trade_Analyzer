@@ -130,39 +130,55 @@ def parse_and_print_response(response_text: str):
 
 
 if __name__ == "__main__":
-    # 1. Get watchlist from Gemini
-    print("STEP 1: Asking Gemini for the top 5 stocks for a short-term trade...")
-    top_stocks = get_top_5_swing_stocks()
-    print("-" * 50)
-    
-    # 2. Analyze the watchlist
-    print("STEP 2: Analyzing watchlist with local tools...")
-    analysis_data = analyze_watchlist(top_stocks)
-    print("-" * 50)
-    
-    # 3. Fetch live prices
-    print("STEP 3: Fetching live market prices...")
-    try:
-        data = yf.download(tickers=top_stocks, period='2d', interval='1m', progress=False, auto_adjust=True)
-        live_prices = data['Close'].iloc[-1].to_dict()
-        print("  - Success: Live prices fetched.")
-    except Exception as e:
-        print(f"  - Error: Could not fetch live prices: {e}. Exiting.")
-        exit()
-    print("-" * 50)
+    import argparse
 
-    # 4. Generate context
-    print("STEP 4: Generating full context for Gemini...")
-    full_context = generate_trading_context(top_stocks, live_prices, analysis_data)
-    
-    # 5. Create prompt
-    print("STEP 5: Constructing final, detailed prompt...")
-    analysis_prompt = create_trading_prompt(full_context)
-    print("-" * 50)
+    parser = argparse.ArgumentParser(description="Stock Trading Bot")
+    parser.add_argument("ticker", type=str, nargs="?", help="Stock ticker symbol (e.g., AAPL)")
+    parser.add_argument("price", type=float, nargs="?", help="Purchase price of the stock")
+    args = parser.parse_args()
 
-    # 6. Send to Gemini
-    print("STEP 6: Sending final prompt to Gemini for trade plan...")
-    final_response_text = prompt_gemini_for_analysis(analysis_prompt)
+    if args.ticker and args.price:
+        # If ticker and price are provided, calculate sell prices
+        analyzer = StockAnalyzer(args.ticker)
+        sell_prices = analyzer.get_sell_prices(args.price)
+        print(f"Sell prices for {args.ticker}:")
+        print(f"  - Stop Loss: {sell_prices['stop_loss']}")
+        print(f"  - Take Profit: {sell_prices['take_profit']}")
+    else:
+        # Original functionality
+        # 1. Get watchlist from Gemini
+        print("STEP 1: Asking Gemini for the top 5 stocks for a short-term trade...")
+        top_stocks = get_top_5_swing_stocks()
+        print("-" * 50)
     
-    # 7. Parse and print final result
-    parse_and_print_response(final_response_text)
+        # 2. Analyze the watchlist
+        print("STEP 2: Analyzing watchlist with local tools...")
+        analysis_data = analyze_watchlist(top_stocks)
+        print("-" * 50)
+    
+        # 3. Fetch live prices
+        print("STEP 3: Fetching live market prices...")
+        try:
+            data = yf.download(tickers=top_stocks, period='2d', interval='1m', progress=False, auto_adjust=True)
+            live_prices = data['Close'].iloc[-1].to_dict()
+            print("  - Success: Live prices fetched.")
+        except Exception as e:
+            print(f"  - Error: Could not fetch live prices: {e}. Exiting.")
+            exit()
+        print("-" * 50)
+
+        # 4. Generate context
+        print("STEP 4: Generating full context for Gemini...")
+        full_context = generate_trading_context(top_stocks, live_prices, analysis_data)
+    
+        # 5. Create prompt
+        print("STEP 5: Constructing final, detailed prompt...")
+        analysis_prompt = create_trading_prompt(full_context)
+        print("-" * 50)
+
+        # 6. Send to Gemini
+        print("STEP 6: Sending final prompt to Gemini for trade plan...")
+        final_response_text = prompt_gemini_for_analysis(analysis_prompt)
+    
+        # 7. Parse and print final result
+        parse_and_print_response(final_response_text)
