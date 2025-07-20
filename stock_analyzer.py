@@ -1,5 +1,14 @@
 import yfinance as yf
 
+from technical_indicators import (
+    calculate_moving_average,
+    calculate_rsi,
+    calculate_macd,
+    calculate_bollinger_bands,
+    calculate_obv,
+    calculate_stochastic_oscillator,
+)
+
 class StockAnalyzer:
     def __init__(self, ticker):
         self.ticker = ticker
@@ -22,15 +31,6 @@ class StockAnalyzer:
         if financials is not None and not financials.empty:
             return financials
         return "Financial data not available."
-
-from technical_indicators import (
-    calculate_moving_average,
-    calculate_rsi,
-    calculate_macd,
-    calculate_bollinger_bands,
-    calculate_obv,
-    calculate_stochastic_oscillator,
-)
 
     def get_technical_indicators(self):
         """

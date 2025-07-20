@@ -14,7 +14,6 @@ def get_top_5_swing_stocks() -> list:
     Sends an initial prompt to Gemini to get a list of 5 stocks suitable
     for a short-term (3-7 day) swing trade.
     """
-    print("STEP 1: Asking Gemini for the top 5 stocks for a short-term trade...")
 
     prompt = textwrap.dedent("""
     You are a Senior Market Analyst. Your task is to identify 5 US-listed stocks that are strong candidates for a short-term swing trade (holding for 3-7 days).
@@ -52,9 +51,6 @@ def get_top_5_swing_stocks() -> list:
 
 def prompt_gemini_for_analysis(prompt: str):
     """Sends the prompt to the Gemini API and prints the response."""
-    print("STEP 4: Sending prompt to Gemini for analysis...")
-    print("-" * 50)
-
     try:
         api_key = get_api_key()
         genai.configure(api_key=api_key)
