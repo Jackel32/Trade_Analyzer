@@ -4,7 +4,7 @@ import textwrap
 from tabulate import tabulate
 
 # Imports from other project modules
-from gemini_client import get_top_5_swing_stocks, prompt_gemini_for_analysis
+from gemini_client import get_swing_stocks, prompt_gemini_for_analysis
 from stock_analyzer import StockAnalyzer
 
 def analyze_watchlist(tickers: list) -> dict:
@@ -148,19 +148,59 @@ if __name__ == "__main__":
     else:
         # Original functionality
         # 1. Get watchlist from Gemini
-        print("STEP 1: Asking Gemini for the top 5 stocks for a short-term trade...")
-        top_stocks = get_top_5_swing_stocks()
+        print("STEP 1: Asking Gemini for 25 potential swing trade stocks...")
+        initial_watchlist = get_swing_stocks()
         print("-" * 50)
-    
-        # 2. Analyze the watchlist
-        print("STEP 2: Analyzing watchlist with local tools...")
-        analysis_data = analyze_watchlist(top_stocks)
+
+        # 2. Filter and Analyze the watchlist
+        print("STEP 2: Filtering and analyzing watchlist with local tools...")
+
+        filtered_stocks = []
+        analysis_data = {}
+
+        for ticker in initial_watchlist:
+            if len(filtered_stocks) >= 5:
+                print("\n  > Analysis complete. Found 5 suitable stocks.")
+                break
+
+            analyzer = StockAnalyzer(ticker)
+
+            # Check for high-profitability chance
+            confidence_str = analyzer.get_confidence_score()
+            try:
+                confidence_val = float(confidence_str.strip('%'))
+                if confidence_val < 85.0:
+                    print(f"  - Skipping {ticker} (Confidence: {confidence_str} < 85%)")
+                    continue
+            except (ValueError, TypeError):
+                print(f"  - Skipping {ticker} (Could not parse confidence score)")
+                continue
+
+            # Check technical indicators
+            tech_indicators = analyzer.get_technical_indicators()
+            if not isinstance(tech_indicators, dict):
+                print(f"  - Skipping {ticker} (Insufficient technical data)")
+                continue
+
+            # Add to filtered list
+            print(f"  + Adding {ticker} to final list (Confidence: {confidence_str})")
+            filtered_stocks.append(ticker)
+            analysis_data[ticker] = {
+                "Technical Indicators": tech_indicators,
+                "Confidence Score": confidence_str
+            }
+
+        if len(filtered_stocks) < 3:
+            print("\nCould not find at least 3 high-probability stocks. Exiting.")
+            exit()
+
+        print(f"\nFinal Watchlist: {', '.join(filtered_stocks)}")
         print("-" * 50)
-    
+
         # 3. Fetch live prices
         print("STEP 3: Fetching live market prices...")
         try:
-            data = yf.download(tickers=top_stocks, period='2d', interval='1m', progress=False, auto_adjust=True)
+            data = yf.download(tickers=filtered_stocks, period='2d', interval='1m', progress=False, auto_adjust=True)
             live_prices = data['Close'].iloc[-1].to_dict()
             print("  - Success: Live prices fetched.")
         except Exception as e:
@@ -170,8 +210,8 @@ if __name__ == "__main__":
 
         # 4. Generate context
         print("STEP 4: Generating full context for Gemini...")
-        full_context = generate_trading_context(top_stocks, live_prices, analysis_data)
-    
+        full_context = generate_trading_context(filtered_stocks, live_prices, analysis_data)
+
         # 5. Create prompt
         print("STEP 5: Constructing final, detailed prompt...")
         analysis_prompt = create_trading_prompt(full_context)
@@ -180,6 +220,6 @@ if __name__ == "__main__":
         # 6. Send to Gemini
         print("STEP 6: Sending final prompt to Gemini for trade plan...")
         final_response_text = prompt_gemini_for_analysis(analysis_prompt)
-    
+
         # 7. Parse and print final result
         parse_and_print_response(final_response_text)

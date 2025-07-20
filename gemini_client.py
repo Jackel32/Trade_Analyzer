@@ -9,14 +9,14 @@ def get_api_key():
         raise ValueError("GEMINI_API_KEY environment variable not set. Please set it to your API key.")
     return api_key
 
-def get_top_5_swing_stocks() -> list:
+def get_swing_stocks() -> list:
     """
-    Sends an initial prompt to Gemini to get a list of 5 stocks suitable
+    Sends an initial prompt to Gemini to get a list of 25 stocks suitable
     for a short-term (3-7 day) swing trade.
     """
 
     prompt = textwrap.dedent("""
-    You are a Senior Market Analyst. Your task is to identify 5 US-listed stocks that are strong candidates for a short-term swing trade (holding for 3-7 days).
+    You are a Senior Market Analyst. Your task is to identify 25 US-listed stocks that are strong candidates for a short-term swing trade (holding for 3-7 days).
 
     Selection Criteria:
     - High liquidity (Market Cap > $10B and high average daily volume).
@@ -25,7 +25,7 @@ def get_top_5_swing_stocks() -> list:
     - Potential for a near-term catalyst (sector rotation, news, etc.).
 
     Provide your response as a single line of comma-separated ticker symbols, and nothing else.
-    Example: AAPL,MSFT,NVDA,GOOG,JPM
+    Example: AAPL,MSFT,NVDA,GOOG,JPM,AMZN,TSLA,META,BAC,WMT,XOM,CVX,PFE,MRK,LLY,UNH,V,MA,HD,COST,PEP,KO,DIS,NFLX,CRM
     """)
 
     try:
@@ -38,10 +38,10 @@ def get_top_5_swing_stocks() -> list:
         # Parse the comma-separated list
         tickers = [ticker.strip() for ticker in response.text.strip().split(',')]
 
-        if len(tickers) != 5:
-            raise ValueError("AI did not return a list of 5 tickers.")
+        if len(tickers) < 10: # Just a sanity check
+            raise ValueError("AI did not return a sufficient list of tickers.")
 
-        print(f"   > Received watchlist: {', '.join(tickers)}\n")
+        print(f"   > Received watchlist of {len(tickers)} stocks.\n")
         return tickers
 
     except Exception as e:
