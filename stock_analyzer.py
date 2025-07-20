@@ -97,3 +97,14 @@ class StockAnalyzer:
             score += 1
 
         return f"{(score / 5) * 100:.2f}%"
+
+    def get_sell_prices(self, purchase_price):
+        """
+        Calculates the stop loss and take profit prices for the stock.
+        """
+        stop_loss = purchase_price * 0.9
+        take_profit = purchase_price * 1.2
+        return {
+            "stop_loss": f"{stop_loss:.2f}",
+            "take_profit": f"{take_profit:.2f}",
+        }
